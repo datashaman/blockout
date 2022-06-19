@@ -4,11 +4,13 @@ CLI entry module.
 """
 
 import click
+import click_log
 import importlib.util
 import logging
-import putiopy
 
 from . import find_config
+
+logger = logging.getLogger(__name__)
 
 config = None
 config_file = find_config()
@@ -20,27 +22,12 @@ if config_file:
 
 
 @click.group()
-@click.option(
-    "--log-filename", default="blockout.log", help="Filename where log output is written"
-)
-@click.option("--log-level", help="Log level used")
+@click_log.simple_verbosity_option(logger)
 @click.pass_context
-def cli(
-    ctx,
-    log_filename="putio.log",
-    log_level=None,
-):
+def cli(ctx):
     ctx.ensure_object(dict)
 
-    if config:
-        if log_level is None:
-            log_level = config.LOG_LEVEL
-
-    logging.basicConfig(
-        filename=log_filename,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        level=log_level,
-    )
+    logger.info("Started")
 
 
 from . import commands

@@ -1,9 +1,15 @@
+PYTHON_FILES = $(shell find . -type f -name "*.py")
+
 default:
 
 clean:
 	python setup.py clean
 	find . -name '*.pyc' -delete
 	rm -rf build dist .eggs blockout.egg-info sdist tmp/*/*
+
+lint:
+	black $(PYTHON_FILES)
+	flake8 $(PYTHON_FILES)
 
 readme-generate:
 	# toc

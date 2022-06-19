@@ -1,24 +1,19 @@
 """
 Initialize the application.
 """
-import logging
-
-logger = logging.getLogger(__name__)
-
 import appdirs
 import click
+import click_log
 import datetime
-import distutils.dir_util
+import logging
 import os
-import sqlite3
 
 APP_NAME = "blockout"
 APP_AUTHOR = "datashaman"
 DIRS = appdirs.AppDirs(APP_NAME, APP_AUTHOR)
 
-from .db import create_db, database_path
-
-create_db()
+logger = logging.getLogger(__name__)
+click_log.basic_config(logger)
 
 
 def date_handler(obj):
