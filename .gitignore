@@ -1,0 +1,11 @@
+*pyc
+/*.egg-info/
+/.eggs/
+/.env
+/AUTHORS
+/ChangeLog
+/blockout.log
+/build/
+/config.py
+/dist/
+/tmp/
