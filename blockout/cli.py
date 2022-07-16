@@ -19,18 +19,14 @@ click_log.basic_config(logger)
 
 @click.group()
 @click_log.simple_verbosity_option(logger)
-@click.option('--key', help='Twitter consumer key')
-@click.password_option('--secret', help='Twitter consumer secret')
-@click.password_option('--token', help='Twitter bearer token')
-@click.password_option('--user_id', help='Twitter user ID')
+@click.option('--consumer-key', help='Twitter consumer key')
+@click.password_option('--consumer-secret', help='Twitter consumer secret')
 @click.pass_context
-def cli(ctx, key, secret, token, user_id):
+def cli(ctx, consumer_key, consumer_secret):
     ctx.ensure_object(dict)
 
-    ctx.obj['KEY'] = key
-    ctx.obj['SECRET'] = secret
-    ctx.obj['TOKEN'] = token
-    ctx.obj['USER_ID'] = user_id
+    ctx.obj['CONSUMER_KEY'] = consumer_key
+    ctx.obj['CONSUMER_SECRET'] = consumer_secret
 
     logger.info("Started")
 

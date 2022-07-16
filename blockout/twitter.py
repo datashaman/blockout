@@ -5,79 +5,21 @@ import appdirs
 import click
 
 from blockout.constants import APP_AUTHOR, APP_NAME
-from requests_oauthlib import OAuth1Session
+from twitter import OAuth, oauth_dance, read_token_file, Twitter
 
 
-def verify_credentials(session):
-    return session.get("https://api.twitter.com/1.1/account/verify_credentials.json").json()
-
-
-def authenticate(session):
-    authorization_url = session.authorization_url("https://api.twitter.com/oauth/authenticate")
-    click.echo(authorization_url)
-
-    click.echo("Please go here and authorize: %s" % authorization_url)
-
-    return input("Paste the PIN here: ")
-
-
-def authorize(session):
-    authorization_url = session.authorization_url("https://api.twitter.com/oauth/authorize")
-    click.echo("Please go here and authorize: %s" % authorization_url)
-
-    return input("Paste the PIN here: ")
-
-
-def get_access_token_path(ctx):
+def get_token_path(ctx):
     user_cache_dir = appdirs.user_cache_dir(APP_NAME, APP_AUTHOR)
     os.makedirs(user_cache_dir, mode=0o700, exist_ok=True)
     return os.path.join(user_cache_dir, 'token.txt')
 
 
-def create_access_token(ctx):
-    session = OAuth1Session(ctx.obj['KEY'], client_secret=ctx.obj['SECRET'])
-    resource_owner_token = session.fetch_request_token("https://api.twitter.com/oauth/request_token")
+def get_twitter(ctx):
+    token_path = get_token_path(ctx)
 
-    session = OAuth1Session(
-        ctx.obj['KEY'],
-        client_secret=ctx.obj['SECRET'],
-        resource_owner_key=resource_owner_token['oauth_token'],
-        resource_owner_secret=resource_owner_token['oauth_token_secret'],
-        verifier=authenticate(session),
-    )
+    if not os.path.exists(token_path):
+         oauth_dance(APP_NAME, ctx.obj['CONSUMER_KEY'], ctx.obj['CONSUMER_SECRET'], token_path)
 
-    access_token = session.fetch_access_token("https://api.twitter.com/oauth/access_token")
+    token, token_secret = read_token_file(token_path)
 
-    with open(get_access_token_path(ctx), 'w') as access_token_file:
-        contents = json.dumps(access_token, indent=4)
-        access_token_file.write(contents)
-
-    return access_token
-
-
-def get_access_token(ctx, use_existing=True):
-    if not use_existing:
-        return create_access_token(ctx)
-
-    access_token = None
-
-    try:
-        with open(get_access_token_path(ctx), 'r') as access_token_file:
-            contents = access_token_file.read()
-            access_token = json.loads(contents)
-    except FileNotFoundError:
-        access_token = create_access_token(ctx)
-
-    return access_token
-
-
-def get_session(ctx, access_token=None):
-    if access_token is None:
-        access_token = get_access_token(ctx)
-
-    return OAuth1Session(
-        ctx.obj['KEY'],
-        client_secret=ctx.obj['SECRET'],
-        resource_owner_key=access_token['oauth_token'],
-        resource_owner_secret=access_token['oauth_token_secret'],
-    )
+    return Twitter(auth=OAuth(token, token_secret, ctx.obj['CONSUMER_KEY'], ctx.obj['CONSUMER_SECRET']))
