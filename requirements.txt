@@ -2,5 +2,4 @@ appdirs
 click
 click-log
 python-dotenv
-requests
-requests-oauthlib
+twitter

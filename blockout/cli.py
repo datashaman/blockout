@@ -4,46 +4,34 @@ CLI entry module.
 """
 
 import click
+import click_log
 import importlib.util
 import logging
-import putiopy
 
-from . import find_config
+from dotenv import load_dotenv
 
-config = None
-config_file = find_config()
 
-if config_file:
-    spec = importlib.util.spec_from_file_location("config", config_file)
-    config = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(config)
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+click_log.basic_config(logger)
 
 
 @click.group()
-@click.option(
-    "--log-filename", default="blockout.log", help="Filename where log output is written"
-)
-@click.option("--log-level", help="Log level used")
+@click_log.simple_verbosity_option(logger)
+@click.option('--consumer-key', help='Twitter consumer key')
+@click.password_option('--consumer-secret', help='Twitter consumer secret')
 @click.pass_context
-def cli(
-    ctx,
-    log_filename="putio.log",
-    log_level=None,
-):
+def cli(ctx, consumer_key, consumer_secret):
     ctx.ensure_object(dict)
 
-    if config:
-        if log_level is None:
-            log_level = config.LOG_LEVEL
+    ctx.obj['CONSUMER_KEY'] = consumer_key
+    ctx.obj['CONSUMER_SECRET'] = consumer_secret
 
-    logging.basicConfig(
-        filename=log_filename,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        level=log_level,
-    )
+    logger.info("Started")
 
 
-from . import commands
+from blockout import commands
 
 
 def main():
